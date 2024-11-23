@@ -5,6 +5,7 @@ ce projet accademique de groupe explore l'Utilisation des smart contracts pour s
 Les membres du groupe sont:
 
 ```shell
-
-
+npx hardhat compile
+npx hardhat node
+npx hardhat run scripts/deploy.js --network hardhat
 ```
