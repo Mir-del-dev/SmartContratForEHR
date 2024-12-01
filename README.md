@@ -7,5 +7,10 @@ Les membres du groupe sont:
 ```shell
 npx hardhat compile
 npx hardhat node
-npx hardhat run scripts/deploy.js --network hardhat
+npx hardhat run scripts/deploy.js --network localhost
+
+
+http-server .
+ne pas executer ceci pour l'instant ( on a pas encore de moyen pour connecter à ganache)
+npx hardhat --network ganache test
 ```
