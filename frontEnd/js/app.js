@@ -3,6 +3,7 @@ if (typeof window.ethereum !== "undefined") {
   console.log("MetaMask trouvé !");
 } else {
   alert("Veuillez installer MetaMask !");
+
 }
 
 // ABI et adresse du contrat
@@ -143,11 +144,16 @@ let web3, contract;
 
 // Initialisation de Web3 et du contrat
 async function init() {
+  const div1 = document.getElementById('ifNotLogging');
+  const div2 = document.getElementById('ifLogging');
+  
   try {
     web3 = new Web3(window.ethereum);
     await ethereum.request({ method: "eth_requestAccounts" }); // Demande l'accès à MetaMask
     contract = new web3.eth.Contract(contractAbi, contractAddress);
     console.log("Contrat initialisé !");
+    div1.style.display = 'none';
+    div2.style.display = 'block';
   } catch (error) {
     console.error("Erreur d'initialisation", error);
   }
@@ -234,7 +240,6 @@ async function loadDoctors() {
 
 // Ajouter les écouteurs d'événements
 document.getElementById("grant-access").addEventListener("click", grantAccess);
-document.getElementById("refreshList").addEventListener("click", refreshList);
 document.getElementById("checkContractState").addEventListener("click", checkContractState);
 document.getElementById("loadDoctors").addEventListener("click", loadDoctors);
 //document.getElementById("check-access").addEventListener("click", checkAccess);
