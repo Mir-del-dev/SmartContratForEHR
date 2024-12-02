@@ -3,6 +3,7 @@ if (typeof window.ethereum !== "undefined") {
   console.log("MetaMask trouvé !");
 } else {
   alert("Veuillez installer MetaMask !");
+
 }
 
 // ABI et adresse du contrat
@@ -26,6 +27,38 @@ const contractAbi = [
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "doctorsWithAccess",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getDoctorsWithAccess",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
       }
     ],
     "stateMutability": "view",
@@ -105,20 +138,26 @@ const contractAbi = [
     "type": "function"
   }
 ];
-const contractAddress = "0x5fbdb2315678afecb367f032d93f642f64180aa3"; // Remplace avec l'adresse de déploiement
+const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // Remplace avec l'adresse de déploiement
 
 let web3, contract;
 
 // Initialisation de Web3 et du contrat
 async function init() {
+  const div1 = document.getElementById('ifNotLogging');
+  const div2 = document.getElementById('ifLogging');
+  
   try {
     web3 = new Web3(window.ethereum);
     await ethereum.request({ method: "eth_requestAccounts" }); // Demande l'accès à MetaMask
     contract = new web3.eth.Contract(contractAbi, contractAddress);
     console.log("Contrat initialisé !");
+    div1.style.display = 'none';
+    div2.style.display = 'block';
   } catch (error) {
     console.error("Erreur d'initialisation", error);
   }
+
 }
 
 // Fonction pour accorder l'accès à un médecin
@@ -151,15 +190,21 @@ async function revokeAccess() {
 }
 
 // Vérifier si un médecin a accès
-async function checkAccess() {
-  const doctorAddress = document.getElementById("doctorAddress").value;
+async function refreshList() {
+  await loadDoctors();
+}
 
+async function checkContractState() {
   try {
-    const hasAccess = await contract.methods.canAccess(doctorAddress).call();
-    alert(`Le médecin ${doctorAddress} ${hasAccess ? "a" : "n'a pas"} accès`);
+    const accounts = await web3.eth.getAccounts();
+    console.log("Compte déployeur :", accounts[0]);
+
+    // Vérifiez les permissions pour un médecin fictif
+    const testDoctor = "0x71bE63f3384f5fb98995898A86B02Fb2426c5788";
+    const canAccess = await contract.methods.canAccess(testDoctor).call();
+    console.log(`Le médecin ${testDoctor} a accès ?`, canAccess);
   } catch (error) {
-    console.error("Erreur lors de la vérification de l'accès :", error);
-    alert("Erreur lors de la vérification.");
+    console.error("Erreur lors de la vérification de l'état du contrat :", error);
   }
 }
 
@@ -195,8 +240,11 @@ async function loadDoctors() {
 
 // Ajouter les écouteurs d'événements
 document.getElementById("grant-access").addEventListener("click", grantAccess);
-//document.getElementById("revoke-access").addEventListener("click", revokeAccess);
+document.getElementById("checkContractState").addEventListener("click", checkContractState);
+document.getElementById("loadDoctors").addEventListener("click", loadDoctors);
 //document.getElementById("check-access").addEventListener("click", checkAccess);
 
 // Initialisation de l'application
 window.onload = init;
+
+
