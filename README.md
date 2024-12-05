@@ -10,8 +10,7 @@ npx hardhat node
 npx hardhat run scripts/deploy.js --network localhost
 
 npm install ipfs-http-client
-
+npm i -g http-sever
 http-server .
-ne pas executer ceci pour l'instant ( on a pas encore de moyen pour connecter à ganache)
-npx hardhat --network ganache test
+
 ```
