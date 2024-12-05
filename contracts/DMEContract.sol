@@ -6,6 +6,7 @@ contract DMEContract {
         address doctor;
         uint256 validUntil;
         bool canAccess;
+        
     }
 
     mapping(address => Permission) public permissions;

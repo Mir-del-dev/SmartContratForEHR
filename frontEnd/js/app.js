@@ -157,13 +157,15 @@ async function init() {
   } catch (error) {
     console.error("Erreur d'initialisation", error);
   }
+  await loadDoctors();
+
 
 }
 
 // Fonction pour accorder l'accès à un médecin
 async function grantAccess() {
   const doctorAddress = document.getElementById("doctorAddress").value;
-  const duration = 60 * 60 * 24; // Durée en secondes (par exemple, 24 heures)
+  const duration = 60 * 60 * 24; 
 
   try {
     const accounts = await web3.eth.getAccounts();
@@ -173,6 +175,7 @@ async function grantAccess() {
     console.error("Erreur lors de l'attribution de l'accès :", error);
     alert("Erreur lors de l'attribution de l'accès.");
   }
+  await loadDoctors();
 }
 
 // Fonction pour révoquer l'accès
