@@ -73,6 +73,9 @@ module.exports = {
     // Copier d'autres fichiers comme contract.json
     new CopyWebpackPlugin({
       patterns: [
+        { from: "frontEnd/css/welcome.css", to: "css/welcome.css" },
+        { from: "frontEnd/css/styles.css", to: "css/styles.css" },
+        { from: "frontEnd/images/logo.png", to: "images/logo.png" },
         { from: "artifacts/contracts/DMEContract.sol/DMEContract.json", to: "contract.json" }, // Copier contract.json dans dist/
       ],
     }),
