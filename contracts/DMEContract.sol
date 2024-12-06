@@ -6,11 +6,17 @@ contract DMEContract {
         address doctor;
         uint256 validUntil;
         bool canAccess;
-        
+        string doctorName;
+        string[] cids; // Liste des fichiers accessibles par le médecin
+    }
+     struct File {
+        string cid; // CID du fichier (hash IPFS)
+        string fileType; // Type de fichier (ex : "Consultation", "Test COVID", etc.)
     }
 
     mapping(address => Permission) public permissions;
     address public patient;
+    File[] public files;
     address[] public doctorsWithAccess; // Liste des adresses des médecins ayant accès
 
     constructor() {
@@ -23,12 +29,22 @@ contract DMEContract {
     }
 
     // Fonction pour accorder l'accès à un médecin
-    function grantAccess(address doctor, uint256 duration) public onlyPatient {
-        // Si le médecin n'est pas déjà dans la liste, on l'ajoute
+     function grantAccess(
+        address doctor,
+        uint256 duration,
+        string memory doctorName,
+        string[] memory cids
+    ) public onlyPatient {
         if (!permissions[doctor].canAccess) {
             doctorsWithAccess.push(doctor);
         }
-        permissions[doctor] = Permission(doctor, block.timestamp + duration, true);
+        permissions[doctor] = Permission({
+            doctor: doctor,
+            validUntil: block.timestamp + duration,
+            canAccess: true,
+            doctorName: doctorName,
+            cids: cids
+        });
     }
 
     // Fonction pour révoquer l'accès d'un médecin
@@ -43,22 +59,58 @@ contract DMEContract {
     }
 
     // Fonction pour récupérer la liste des médecins ayant encore accès
-    function getDoctorsWithAccess() public view returns (address[] memory) {
-        address[] memory validDoctors = new address[](doctorsWithAccess.length);
+   function getDoctorsWithAccess() public view returns (address[] memory, string[] memory) {
         uint256 count = 0;
 
+        // Compter les médecins ayant encore accès
         for (uint256 i = 0; i < doctorsWithAccess.length; i++) {
             if (permissions[doctorsWithAccess[i]].canAccess && block.timestamp <= permissions[doctorsWithAccess[i]].validUntil) {
-                validDoctors[count] = doctorsWithAccess[i];
                 count++;
             }
         }
 
-        // Réduire la taille du tableau pour correspondre au nombre réel de médecins valides
-        assembly {
-            mstore(validDoctors, count)
+        // Créer les tableaux pour les adresses et les noms
+        address[] memory validDoctors = new address[](count);
+        string[] memory doctorNames = new string[](count);
+
+        uint256 index = 0;
+        for (uint256 i = 0; i < doctorsWithAccess.length; i++) {
+            if (permissions[doctorsWithAccess[i]].canAccess && block.timestamp <= permissions[doctorsWithAccess[i]].validUntil) {
+                validDoctors[index] = doctorsWithAccess[i];
+                doctorNames[index] = permissions[doctorsWithAccess[i]].doctorName;
+                index++;
+            }
         }
 
-        return validDoctors;
+        return (validDoctors, doctorNames);
+    }
+
+    // Ajouter un nouveau fichier médical
+    function addFile(string memory cid, string memory fileType) public onlyPatient {
+        files.push(File(cid, fileType));
+    }
+    function canAccess(address doctor, string memory cid) public view returns (bool) {
+        Permission memory permission = permissions[doctor];
+        if (!permission.canAccess || block.timestamp > permission.validUntil) return false;
+
+        for (uint256 i = 0; i < permission.cids.length; i++) {
+            if (keccak256(abi.encodePacked(permission.cids[i])) == keccak256(abi.encodePacked(cid))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function getFilesWithAccess(address doctor) public view returns (string[] memory) {
+        Permission memory permission = permissions[doctor];
+       
+        return permission.cids;
+    }
+
+     // Récupérer les détails d'un fichier par son index
+    function getFileDetails(uint256 fileIndex) public view returns (string memory cid, string memory fileType) {
+        require(fileIndex < files.length, "Invalid file index");
+        File memory file = files[fileIndex];
+        return (file.cid, file.fileType);
     }
 }
