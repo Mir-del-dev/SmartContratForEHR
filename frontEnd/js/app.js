@@ -1,153 +1,35 @@
-    // Charger Web3.js
+
+   // Charger Web3.js
 if (typeof window.ethereum !== "undefined") {
   console.log("MetaMask trouvé !");
 } else {
   alert("Veuillez installer MetaMask !");
 
 }
-
-// ABI et adresse du contrat
-const contractAbi = [
-  {
-    "inputs": [],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "doctor",
-        "type": "address"
-      }
-    ],
-    "name": "canAccess",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "doctorsWithAccess",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getDoctorsWithAccess",
-    "outputs": [
-      {
-        "internalType": "address[]",
-        "name": "",
-        "type": "address[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "doctor",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "duration",
-        "type": "uint256"
-      }
-    ],
-    "name": "grantAccess",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "patient",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "name": "permissions",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "doctor",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "validUntil",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "canAccess",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "doctor",
-        "type": "address"
-      }
-    ],
-    "name": "revokeAccess",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
-];
-const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // Remplace avec l'adresse de déploiement
+let contractAbi;
+const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
 
 let web3, contract;
 
+async function loadAbi() {
+  try {
+    const response = await fetch("/contract.json");
+    const artifact = await response.json();
+    contractAbi = artifact.abi;
+    console.log("ABI chargé :", contractAbi);
+  } catch (error) {
+    console.error("Erreur lors du chargement de l'ABI :", error);
+    alert("Erreur lors du chargement de l'ABI. Vérifiez votre configuration.");
+  }
+}
 // Initialisation de Web3 et du contrat
 async function init() {
+
   const div1 = document.getElementById('ifNotLogging');
   const div2 = document.getElementById('ifLogging');
   
   try {
+    await loadAbi();
     web3 = new Web3(window.ethereum);
     await ethereum.request({ method: "eth_requestAccounts" }); // Demande l'accès à MetaMask
     contract = new web3.eth.Contract(contractAbi, contractAddress);
@@ -165,11 +47,12 @@ async function init() {
 // Fonction pour accorder l'accès à un médecin
 async function grantAccess() {
   const doctorAddress = document.getElementById("doctorAddress").value;
+  const doctorName = document.getElementById("doctorName").value;
   const duration = 60 * 60 * 24; 
 
   try {
     const accounts = await web3.eth.getAccounts();
-    await contract.methods.grantAccess(doctorAddress, duration).send({ from: accounts[0] });
+    await contract.methods.grantAccess(doctorAddress, duration,doctorName,[]).send({ from: accounts[0] });
     alert(`Accès accordé au médecin ${doctorAddress} pour 24 heures`);
   } catch (error) {
     console.error("Erreur lors de l'attribution de l'accès :", error);
@@ -179,8 +62,7 @@ async function grantAccess() {
 }
 
 // Fonction pour révoquer l'accès
-async function revokeAccess() {
-  const doctorAddress = document.getElementById("doctorAddress").value;
+async function revokeAccess(doctorAddress) {
 
   try {
     const accounts = await web3.eth.getAccounts();
@@ -190,6 +72,7 @@ async function revokeAccess() {
     console.error("Erreur lors de la révocation de l'accès :", error);
     alert("Erreur lors de la révocation de l'accès.");
   }
+  await  loadDoctors();
 }
 
 // Vérifier si un médecin a accès
@@ -213,27 +96,50 @@ async function checkContractState() {
 
 async function loadDoctors() {
   try {
-      const doctors = await contract.methods.getDoctorsWithAccess().call();
+
+    const result = await contract.methods.getDoctorsWithAccess().call();
+    const addresses = result[0]; // Liste des adresses
+    const names = result[1]; // Liste des noms
       const tableBody = document.getElementById("doctor-list");
 
       // Réinitialiser le tableau
       tableBody.innerHTML = "";
 
       // Ajouter chaque médecin au tableau
-      doctors.forEach((doctor, index) => {
+      addresses.forEach((address, index) => {
           const newRow = tableBody.insertRow();
 
-          // Colonne 1 : Numéro
+          // Colonne 1 : nom
           const cell1 = newRow.insertCell(0);
           cell1.textContent = index + 1;
 
           // Colonne 2 : Adresse du médecin
           const cell2 = newRow.insertCell(1);
-          cell2.textContent = doctor;
+          cell2.textContent = address;
 
-          // Colonne 3 : Validité (on pourrait ajouter des infos supplémentaires ici si besoin)
+          // Colonne 3
           const cell3 = newRow.insertCell(2);
-          cell3.textContent = "Valide"; // Tu peux ajouter des détails depuis une autre fonction si nécessaire
+          cell3.textContent = names[index];
+          
+          // Colonne 
+          const cell4 = newRow.insertCell(3);
+          const revokeButton = document.createElement("button");
+              revokeButton.type = "button";
+              revokeButton.className = "btn btn-light";
+              revokeButton.textContent = "❌";
+              revokeButton.setAttribute("data-id", address);
+              revokeButton.setAttribute("data-bs-toggle", "tooltip");
+              revokeButton.setAttribute("data-bs-placement", "top");
+              revokeButton.setAttribute("data-bs-custom-class", "custom-tooltip");
+              revokeButton.setAttribute("title", "Révoquer l'accès du médecin");
+
+              // Ajouter un événement au bouton
+              revokeButton.addEventListener("click", async () => {
+                await revokeAccess(address);
+              });
+
+              // Ajouter le bouton dans la cellule
+              cell4.appendChild(revokeButton);
       });
   } catch (error) {
       console.error("Erreur lors du chargement des médecins :", error);
@@ -243,9 +149,8 @@ async function loadDoctors() {
 
 // Ajouter les écouteurs d'événements
 document.getElementById("grant-access").addEventListener("click", grantAccess);
-document.getElementById("checkContractState").addEventListener("click", checkContractState);
 document.getElementById("loadDoctors").addEventListener("click", loadDoctors);
-//document.getElementById("check-access").addEventListener("click", checkAccess);
+document.getElementById("check-access").addEventListener("click", checkContractState);
 
 // Initialisation de l'application
 window.onload = init;
