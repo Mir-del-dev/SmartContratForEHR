@@ -12,6 +12,7 @@ npx hardhat run scripts/deploy.js --network localhost
 npm install ipfs-http-client
 
 npm install webpack webpack-cli webpack-dev-server --save-dev
-npù run dev
+npm run build
+npm run dev
 
 ```
