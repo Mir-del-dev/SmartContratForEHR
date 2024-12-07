@@ -7,6 +7,7 @@ module.exports = {
   entry: {
     app: "./frontEnd/js/app.js", // JS pour patient.html
     script: "./frontEnd/js/script.js", // JS pour docteur.html
+    dme:"./frontEnd/js/dme.js",//js pour dme.html
   },
   output: {
     filename: "[name].bundle.js", // Générer un fichier par entrée
@@ -62,7 +63,7 @@ module.exports = {
     new HtmlWebpackPlugin({
         template: "./frontEnd/dme.html", // Source pour docteur.html
         filename: "dme.html",
-        chunks: ["app"], // Inclure script.bundle.js
+        chunks: ["dme"], // Inclure juste dme.bundle.js
       }),
   
     // Extraire les fichiers CSS

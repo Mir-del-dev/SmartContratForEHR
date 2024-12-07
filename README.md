@@ -10,6 +10,12 @@ npx hardhat node
 npx hardhat run scripts/deploy.js --network localhost
 
 npm install ipfs-http-client
+"API": {
+  "HTTPHeaders": {
+    "Access-Control-Allow-Origin": ["*"],
+    "Access-Control-Allow-Methods": ["PUT", "POST", "GET"]
+  }
+}
 
 npm install webpack webpack-cli webpack-dev-server --save-dev
 npm run build

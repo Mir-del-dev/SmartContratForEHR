@@ -41,14 +41,45 @@
 
   <div class="container mt-5">
     <h2>ajouter un dossier medical</h2>
-    <div class="input-group mb-3">
+    <form id="uploadForm">
+      <div class="input-group mb-3">
         <label class="input-group-text" for="inputGroupFile01">dossiers</label>
-        <input type="file" class="form-control" id="inputGroupFile01">
+        <input type="file" class="form-control" id="fileInput">
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="dmetype" id="dmetype1" value="information personnel" checked>
+        <label class="form-check-label" for="dmetype1">
+          Information personnel
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="radio" name="dmetype" id="dmetype2" value="consultation">
+        <label class="form-check-label" for="dmetype2">
+          mes consultations
+        </label>
       </div>
 
-  <button class="btn btn-primary"> Ajouter</button>
+        <button type="submit" class="btn btn-primary"> Ajouter</button>
+    </form>
+   
+
       
   </div>
+
+  <h3 class="mt-4">Liste de mes dossiers dans la blockchaine</h3>
+  <button id="getfilespatients" class="btn btn-primary">Afficher mes fichiers</button>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">cid</th>
+                        <th scope="col">type</th>
+                    </tr>
+                </thead>
+                <tbody id="fileTableBody">
+                </tbody>
+            </table>
+
   <script src="https://cdn.jsdelivr.net/npm/web3@1.6.1/dist/web3.min.js"></script>
 </body>
 </html>

@@ -56,7 +56,6 @@ async function grantAccess() {
     alert(`Accès accordé au médecin ${doctorAddress} pour 24 heures`);
   } catch (error) {
     console.error("Erreur lors de l'attribution de l'accès :", error);
-    alert("Erreur lors de l'attribution de l'accès.");
   }
   await loadDoctors();
 }
@@ -86,9 +85,14 @@ async function checkContractState() {
     console.log("Compte déployeur :", accounts[0]);
 
     // Vérifiez les permissions pour un médecin fictif
-    const testDoctor = "0x71bE63f3384f5fb98995898A86B02Fb2426c5788";
+    const testDoctor = document.getElementById("checkingAddress").value;
     const canAccess = await contract.methods.canAccess(testDoctor).call();
-    console.log(`Le médecin ${testDoctor} a accès ?`, canAccess);
+    if(canAccess){
+    alert(`Le médecin ${testDoctor} a accès `);
+    }else{
+    alert(`Le médecin ${testDoctor} n'as pas accès  à votre dossier`);
+
+    }
   } catch (error) {
     console.error("Erreur lors de la vérification de l'état du contrat :", error);
   }
@@ -145,7 +149,6 @@ async function loadDoctors() {
       console.error("Erreur lors du chargement des médecins :", error);
   }
 }
-
 
 // Ajouter les écouteurs d'événements
 document.getElementById("grant-access").addEventListener("click", grantAccess);

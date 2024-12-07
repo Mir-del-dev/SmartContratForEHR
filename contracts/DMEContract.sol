@@ -113,4 +113,18 @@ contract DMEContract {
         File memory file = files[fileIndex];
         return (file.cid, file.fileType);
     }
+     // Fonction pour récupérer la liste des fichiers du patient
+    function getFiles() public view returns (string[] memory, string[] memory) {
+        uint256 totalFiles = files.length;
+
+        string[] memory cids = new string[](totalFiles);
+        string[] memory fileTypes = new string[](totalFiles);
+
+        for (uint256 i = 0; i < totalFiles; i++) {
+            cids[i] = files[i].cid;
+            fileTypes[i] = files[i].fileType;
+        }
+
+        return (cids, fileTypes);
+    }
 }
