@@ -5,7 +5,7 @@ async function main() {
     // Déployer le contrat
     const DMEContract = await ethers.getContractFactory("DMEContract");
     const dmeContract = await DMEContract.deploy();
-
+    //très important d'attendre la fin du déploiement pour avoir l'addresesseessee
     const receipt = await dmeContract.waitForDeployment();
     console.log("Contract deployed to:", receipt.target);
 }

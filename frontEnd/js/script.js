@@ -1,157 +1,41 @@
-    // Charger Web3.js
-    if (typeof window.ethereum !== "undefined") {
-        console.log("MetaMask trouvé !");
-      } else {
-        alert("Veuillez installer MetaMask !");
-      }
-      
-      // ABI et adresse du contrat
-      const contractAbi =  [
-        {
-          "inputs": [],
-          "stateMutability": "nonpayable",
-          "type": "constructor"
-        },
-        {
-          "inputs": [
-            {
-              "internalType": "address",
-              "name": "doctor",
-              "type": "address"
-            }
-          ],
-          "name": "canAccess",
-          "outputs": [
-            {
-              "internalType": "bool",
-              "name": "",
-              "type": "bool"
-            }
-          ],
-          "stateMutability": "view",
-          "type": "function"
-        },
-        {
-          "inputs": [
-            {
-              "internalType": "uint256",
-              "name": "",
-              "type": "uint256"
-            }
-          ],
-          "name": "doctorsWithAccess",
-          "outputs": [
-            {
-              "internalType": "address",
-              "name": "",
-              "type": "address"
-            }
-          ],
-          "stateMutability": "view",
-          "type": "function"
-        },
-        {
-          "inputs": [],
-          "name": "getDoctorsWithAccess",
-          "outputs": [
-            {
-              "internalType": "address[]",
-              "name": "",
-              "type": "address[]"
-            }
-          ],
-          "stateMutability": "view",
-          "type": "function"
-        },
-        {
-          "inputs": [
-            {
-              "internalType": "address",
-              "name": "doctor",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "duration",
-              "type": "uint256"
-            }
-          ],
-          "name": "grantAccess",
-          "outputs": [],
-          "stateMutability": "nonpayable",
-          "type": "function"
-        },
-        {
-          "inputs": [],
-          "name": "patient",
-          "outputs": [
-            {
-              "internalType": "address",
-              "name": "",
-              "type": "address"
-            }
-          ],
-          "stateMutability": "view",
-          "type": "function"
-        },
-        {
-          "inputs": [
-            {
-              "internalType": "address",
-              "name": "",
-              "type": "address"
-            }
-          ],
-          "name": "permissions",
-          "outputs": [
-            {
-              "internalType": "address",
-              "name": "doctor",
-              "type": "address"
-            },
-            {
-              "internalType": "uint256",
-              "name": "validUntil",
-              "type": "uint256"
-            },
-            {
-              "internalType": "bool",
-              "name": "canAccess",
-              "type": "bool"
-            }
-          ],
-          "stateMutability": "view",
-          "type": "function"
-        },
-        {
-          "inputs": [
-            {
-              "internalType": "address",
-              "name": "doctor",
-              "type": "address"
-            }
-          ],
-          "name": "revokeAccess",
-          "outputs": [],
-          "stateMutability": "nonpayable",
-          "type": "function"
-        }
-      ];
-      const contractAddress = "0x5fbdb2315678afecb367f032d93f642f64180aa3"; // Remplace avec l'adresse de déploiement
-      
-      let web3, contract;
-      
-      // Initialisation de Web3 et du contrat
-      async function init() {
-        try {
-          web3 = new Web3(window.ethereum);
-          await ethereum.request({ method: "eth_requestAccounts" }); // Demande l'accès à MetaMask
-          contract = new web3.eth.Contract(contractAbi, contractAddress);
-          console.log("Contrat initialisé !");
-        } catch (error) {
-          console.error("Erreur d'initialisation", error);
-        }
-      }
+
+   // Charger Web3.js
+   if (typeof window.ethereum !== "undefined") {
+    console.log("MetaMask trouvé !");
+  } else {
+    alert("Veuillez installer MetaMask !");
+  
+  }
+  let contractAbi;
+  const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+  
+  let web3, contract;
+  
+  async function loadAbi() {
+    try {
+      const response = await fetch("/contract.json");
+      const artifact = await response.json();
+      contractAbi = artifact.abi;
+      console.log("ABI chargé :", contractAbi);
+    } catch (error) {
+      console.error("Erreur lors du chargement de l'ABI :", error);
+      alert("Erreur lors du chargement de l'ABI. Vérifiez votre configuration.");
+    }
+  }
+
+  // Initialisation de Web3 et du contrat
+async function init() {
+  try {
+    await loadAbi();
+    web3 = new Web3(window.ethereum);
+    await ethereum.request({ method: "eth_requestAccounts" }); // Demande l'accès à MetaMask
+    contract = new web3.eth.Contract(contractAbi, contractAddress);
+    console.log("Contrat initialisé !");
+  } catch (error) {
+    console.error("Erreur d'initialisation", error);
+  }
+
+}
 // Soumettre une demande d'accès
 async function submitAccessRequest() {
     try {
@@ -171,7 +55,7 @@ async function submitAccessRequest() {
         // Appel à la fonction `grantAccess` du smart contract pour chaque donnée
         const duration = 3600; // durée en secondes
         for (let data of dataSelection) {
-            const transaction = await contract.methods.grantAccess(doctorAddress, duration).send({ from: account });
+            const transaction = await contract.methods.grantAccess(doctorAddress, duration,"docteur",[]).send({ from: account });
             console.log("Demande soumise :", transaction);
         }
 
@@ -183,38 +67,7 @@ async function submitAccessRequest() {
         document.getElementById("responseMessage").style.color = "red";
     }
 }
-// Vérifier si un médecin a accès
-async function checkAccess() {
-    const doctorAddress = document.getElementById("doctorAddress").value;
-
-    try {
-        const hasAccess = await contract.methods.canAccess(doctorAddress).call();
-        alert(`Le médecin ${doctorAddress} ${hasAccess ? "a" : "n'a pas"} accès`);
-    } catch (error) {
-        console.error("Erreur lors de la vérification de l'accès :", error);
-        alert("Erreur lors de la vérification.");
-    }
-}
-// Consulter les journaux d'accès
-async function viewAccessLogs() {
-    try {
-        const logs = await contract.methods.getDoctorsWithAccess().call();
-        console.log("Journaux d'accès :", logs);
-        document.getElementById("responseMessage").textContent = `Médecins ayant accès : ${logs.join(", ")}`;
-    } catch (error) {
-        console.error("Erreur lors de la récupération des journaux :", error);
-        document.getElementById("responseMessage").textContent = "Erreur lors de la récupération des journaux.";
-    }
-}
-
-// Gestion des événements
-//document.getElementById("requestAccessButton").addEventListener("click", submitAccessRequest);
-//document.getElementById("viewLogsButton").addEventListener("click", viewAccessLogs);
-
 
 document.getElementById("requestAccessButton").addEventListener("click", grantAccess);
-//document.getElementById("revoke-access").addEventListener("click", revokeAccess);
-//document.getElementById("check-access").addEventListener("click", checkAccess);
 
-// Initialisation de l'application
 window.onload = init;
