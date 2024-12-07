@@ -39,25 +39,13 @@ async function init() {
 // Soumettre une demande d'accès
 async function submitAccessRequest() {
     try {
-        const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+       const accounts = await web3.eth.getAccounts();
         const account = accounts[0];
 
         const doctorAddress = document.getElementById("doctorAddress").value;
-        const dataSelection = Array.from(document.getElementById("dataSelection").selectedOptions).map(option => option.value);
-        const reason = document.getElementById("reason").value;
-
-        // Vérifier si des données sont sélectionnées
-        if (dataSelection.length === 0) {
-            alert("Veuillez sélectionner des données.");
-            return;
-        }
-
-        // Appel à la fonction `grantAccess` du smart contract pour chaque donnée
         const duration = 3600; // durée en secondes
-        for (let data of dataSelection) {
-            const transaction = await contract.methods.grantAccess(doctorAddress, duration,"docteur",[]).send({ from: account });
+        const transaction = await contract.methods.grantAccess(doctorAddress, duration,"docteur",[]).send({ from: account });
             console.log("Demande soumise :", transaction);
-        }
 
         document.getElementById("responseMessage").textContent = "Accès accordé avec succès.";
         document.getElementById("responseMessage").style.color = "green";
@@ -68,6 +56,6 @@ async function submitAccessRequest() {
     }
 }
 
-document.getElementById("requestAccessButton").addEventListener("click", grantAccess);
+document.getElementById("requestAccessButton").addEventListener("click", submitAccessRequest);
 
 window.onload = init;
